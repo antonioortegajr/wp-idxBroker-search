@@ -16,3 +16,5 @@ Download and upload to your WP install.
 
 * Valid IDX Broker client API key
 * Valid IDX Broker Developer Partner API key
+
+### Adding map
