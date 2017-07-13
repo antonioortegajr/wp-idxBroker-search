@@ -11,6 +11,34 @@ Author URI: http://www.test.com/
 License: GPLv2 or later
  */
 
+ function get_this_site_url( $blog_id = null, $path = '', $scheme = null ) {
+    if ( empty( $blog_id ) || !is_multisite() ) {
+        $url = get_option( 'siteurl' );
+    } else {
+        switch_to_blog( $blog_id );
+        $url = get_option( 'siteurl' );
+        restore_current_blog();
+    }
+
+    $url = set_url_scheme( $url, $scheme );
+
+    if ( $path && is_string( $path ) )
+        $url .= '/' . ltrim( $path, '/' );
+
+    /**
+     * Filters the site URL.
+     *
+     * @since 2.7.0
+     *
+     * @param string      $url     The complete site URL including scheme and path.
+     * @param string      $path    Path relative to the site URL. Blank string if no path is specified.
+     * @param string|null $scheme  Scheme to give the site URL context. Accepts 'http', 'https', 'login',
+     *                             'login_post', 'admin', 'relative' or null.
+     * @param int|null    $blog_id Site ID, or null for the current site.
+     */
+    return apply_filters( 'site_url', $url, $path, $scheme, $blog_id );
+}
+
 
 
 if (!class_exists('idxBrokerSearchQuery')){
@@ -71,8 +99,8 @@ if (!class_exists('idxBrokerSearchQuery')){
               //call IDX API
               $params = array();
               $headers = array('Content-Type' => 'application/x-www-form-urlencoded',
-               'accesskey' => 'apiKey',
-			         'ancillarykey' => 'partnerApiKey',
+               'accesskey' => 'U8XcPJkcUPNAoMdS1A0gw-',
+			         'ancillarykey' => 'YLYsuwps-9kG0PyicpGsQZ',
                'outputtype' => 'json',
                'apiversion' => '1.4.0',);
               $params = array_merge(array('timeout' => 920, 'sslverify' => false, 'headers' => $headers), $params);
@@ -134,17 +162,17 @@ if (!class_exists('idxBrokerSearchQuery')){
 
 }//end if
 
+
   new idxBrokerSearchQuery();
 
   //Short Code
   function idx_search_short_code() {
   	echo '<div id="idxSearchForm">
     <h2>Search for a property</h2>
-    <form action="wordpress/idx-search">
+    <form action="'.$url.'/wordpress/idx-search">
       <input type="text" name="hp" placeholder="High Price" />
       <input type="text" name="lp" placeholder="Low Price"  />
       <input type="submit" value="Submit">
-
     </form>
     </div>.';
   }
