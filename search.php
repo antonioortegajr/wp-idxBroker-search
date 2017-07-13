@@ -99,18 +99,22 @@ if (!class_exists('idxBrokerSearchQuery')){
               //call IDX API
               $params = array();
               $headers = array('Content-Type' => 'application/x-www-form-urlencoded',
-               'accesskey' => 'U8XcPJkcUPNAoMdS1A0gw-',
-			         'ancillarykey' => 'YLYsuwps-9kG0PyicpGsQZ',
-               'outputtype' => 'json',
-               'apiversion' => '1.4.0',);
+                'accesskey' => 'apiKey',
+                'ancillarykey' => 'partnerApiKey',
+                'outputtype' => 'json',
+                'apiversion' => '1.4.0',);
               $params = array_merge(array('timeout' => 920, 'sslverify' => false, 'headers' => $headers), $params);
               $url = 'https://api.idxbroker.com/clients/searchquery?'.$idxSearchQueryParams;
               $response = wp_remote_get($url, $params);
               $response = json_decode($response["body"], true);
               $searchResults = '';
+              $mapPinsLatLng = array();
+
+              $searchResults = $searchResults.'<div id="apiResults">';
 
               //create html for the front end
               foreach ($response as $key => $value) {
+                array_push($mapPinsLatLng, '{lat:'.$value["latitude"].',lng:'.$value["longitude"].'}');
                 $searchResults = $searchResults.'<div id="idxImage"><img src="'.$value["image"][0]["url"].'" /></div>
                 <div id="idxAddress">'.$value["address"].'</div>
                 <div id="idxListingPrice">
@@ -118,10 +122,35 @@ if (!class_exists('idxBrokerSearchQuery')){
                 </div>
                 <p>
                 ---------
-                </p>
-                <style>#idxImage{width:150px;}</style>';
+                </p>';
               }
-
+              $searchResults = $searchResults.'</div><div id="map"></div>
+              <script>
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 4,
+          center: {lat: 25.691400144073, lng: -80.252797882037}
+        });
+        var labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var locations = '.str_replace('"', '', json_encode($mapPinsLatLng)).';
+        var markers = locations.map(function(location, i) {
+          return new google.maps.Marker({
+            position: location,
+            label: labels[i % labels.length]
+          });
+        });
+        // Add a marker clusterer to manage the markers.
+        var markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m"});
+      }
+    </script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=googleMapApiKey
+&callback=initMap">
+    </script>
+              <style>#idxImage{width:150px;} div#apiResults {float: left; width: 20%;} #map {float: right; height: 800px !important; width: 80% !important;}</style>';
 
 
                 //create a fake post
